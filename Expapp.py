@@ -1,263 +1,106 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": 1,
-   "id": "c43e1a16",
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "2025-07-25 19:23:42.907 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.372 \n",
-      "  \u001b[33m\u001b[1mWarning:\u001b[0m to view this Streamlit app on a browser, run it with the following\n",
-      "  command:\n",
-      "\n",
-      "    streamlit run D:\\ANACONDA\\lib\\site-packages\\ipykernel_launcher.py [ARGUMENTS]\n",
-      "2025-07-25 19:23:43.372 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.372 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.381 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.382 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.382 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.383 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.383 Session state does not function when running a script without `streamlit run`\n",
-      "2025-07-25 19:23:43.387 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.387 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.387 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.387 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.387 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.387 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.387 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.393 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.394 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.394 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.395 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.396 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.397 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.398 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.399 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.399 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.400 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.409 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.409 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.410 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.410 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.411 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.414 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.414 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.415 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.416 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.417 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.417 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.418 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.419 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.420 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.420 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.421 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.422 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.423 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.423 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.424 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.425 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.426 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.427 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n"
-     ]
-    },
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.428 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.443 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.444 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.445 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.446 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.447 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.448 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.466 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.467 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.468 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.469 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.469 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.470 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.471 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.472 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.473 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.473 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.474 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-07-25 19:23:43.474 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n"
-     ]
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+import os
+
+# Log file
+LOG_FILE = "log.csv"
+
+# Load or create initial log DataFrame
+if os.path.exists(LOG_FILE):
+    df_log = pd.read_csv(LOG_FILE)
+else:
+    df_log = pd.DataFrame(columns=[
+        "DateTime", "Shop", "Item", "Qty", "NormalPrice",
+        "PurchasePrice", "DiscountAmt", "DiscountPct",
+        "TotalNormal", "TotalPurchase", "TotalDiscount"
+    ])
+    df_log.to_csv(LOG_FILE, index=False)
+
+st.title("📊 Expenditure Tracker")
+
+# Dropdown sources
+shops = sorted(df_log["Shop"].dropna().unique().tolist())
+items = sorted(df_log["Item"].dropna().unique().tolist())
+
+# Input fields
+shop = st.selectbox("🛒 Shop Name", options=shops + ["<New Entry>"])
+if shop == "<New Entry>":
+    shop = st.text_input("Enter new shop name")
+
+item = st.selectbox("📦 Item Name", options=items + ["<New Entry>"])
+if item == "<New Entry>":
+    item = st.text_input("Enter new item name")
+
+qty = st.number_input("🔢 Quantity", min_value=1, step=1, value=1)
+normal_price = st.number_input("💰 Normal Price (unit)", min_value=0.0, step=0.01, format="%.2f")
+discount_pct = st.number_input("📉 % Discount", min_value=0.0, step=0.01, format="%.2f")
+discount_amt = st.number_input("💵 Discount Amount (unit)", min_value=0.0, step=0.01, format="%.2f")
+purchase_price = st.number_input("🛍️ Purchase Price (unit)", min_value=0.0, step=0.01, format="%.2f")
+
+if st.button("✅ Enter"):
+    # Compute missing values
+    if normal_price == 0 and purchase_price > 0 and discount_pct > 0:
+        normal_price = round(purchase_price / (1 - discount_pct / 100), 2)
+
+    if discount_amt == 0 and normal_price > 0 and discount_pct > 0:
+        discount_amt = round(normal_price * (discount_pct / 100), 2)
+
+    if purchase_price == 0 and normal_price > 0:
+        purchase_price = round(normal_price - discount_amt, 2)
+
+    if discount_pct == 0 and normal_price > 0:
+        discount_pct = round((discount_amt / normal_price) * 100, 2) if normal_price else 0
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    total_normal = round(normal_price * qty, 2)
+    total_purchase = round(purchase_price * qty, 2)
+    total_discount = round(discount_amt * qty, 2)
+
+    new_row = {
+        "DateTime": timestamp,
+        "Shop": shop,
+        "Item": item,
+        "Qty": qty,
+        "NormalPrice": normal_price,
+        "PurchasePrice": purchase_price,
+        "DiscountAmt": discount_amt,
+        "DiscountPct": discount_pct,
+        "TotalNormal": total_normal,
+        "TotalPurchase": total_purchase,
+        "TotalDiscount": total_discount,
     }
-   ],
-   "source": [
-    "import streamlit as st\n",
-    "import pandas as pd\n",
-    "from datetime import datetime\n",
-    "import os\n",
-    "\n",
-    "# Log file\n",
-    "LOG_FILE = \"log.csv\"\n",
-    "\n",
-    "# Load or create initial log DataFrame\n",
-    "if os.path.exists(LOG_FILE):\n",
-    "    df_log = pd.read_csv(LOG_FILE)\n",
-    "else:\n",
-    "    df_log = pd.DataFrame(columns=[\n",
-    "        \"DateTime\", \"Shop\", \"Item\", \"Qty\", \"NormalPrice\",\n",
-    "        \"PurchasePrice\", \"DiscountAmt\", \"DiscountPct\",\n",
-    "        \"TotalNormal\", \"TotalPurchase\", \"TotalDiscount\"\n",
-    "    ])\n",
-    "    df_log.to_csv(LOG_FILE, index=False)\n",
-    "\n",
-    "st.title(\"📊 Expenditure Tracker\")\n",
-    "\n",
-    "# Dropdown sources\n",
-    "shops = sorted(df_log[\"Shop\"].dropna().unique().tolist())\n",
-    "items = sorted(df_log[\"Item\"].dropna().unique().tolist())\n",
-    "\n",
-    "# Input fields\n",
-    "shop = st.selectbox(\"🛒 Shop Name\", options=shops + [\"<New Entry>\"])\n",
-    "if shop == \"<New Entry>\":\n",
-    "    shop = st.text_input(\"Enter new shop name\")\n",
-    "\n",
-    "item = st.selectbox(\"📦 Item Name\", options=items + [\"<New Entry>\"])\n",
-    "if item == \"<New Entry>\":\n",
-    "    item = st.text_input(\"Enter new item name\")\n",
-    "\n",
-    "qty = st.number_input(\"🔢 Quantity\", min_value=1, step=1, value=1)\n",
-    "normal_price = st.number_input(\"💰 Normal Price (unit)\", min_value=0.0, step=0.01, format=\"%.2f\")\n",
-    "discount_pct = st.number_input(\"📉 % Discount\", min_value=0.0, step=0.01, format=\"%.2f\")\n",
-    "discount_amt = st.number_input(\"💵 Discount Amount (unit)\", min_value=0.0, step=0.01, format=\"%.2f\")\n",
-    "purchase_price = st.number_input(\"🛍️ Purchase Price (unit)\", min_value=0.0, step=0.01, format=\"%.2f\")\n",
-    "\n",
-    "if st.button(\"✅ Enter\"):\n",
-    "    # Compute missing values\n",
-    "    if normal_price == 0 and purchase_price > 0 and discount_pct > 0:\n",
-    "        normal_price = round(purchase_price / (1 - discount_pct / 100), 2)\n",
-    "\n",
-    "    if discount_amt == 0 and normal_price > 0 and discount_pct > 0:\n",
-    "        discount_amt = round(normal_price * (discount_pct / 100), 2)\n",
-    "\n",
-    "    if purchase_price == 0 and normal_price > 0:\n",
-    "        purchase_price = round(normal_price - discount_amt, 2)\n",
-    "\n",
-    "    if discount_pct == 0 and normal_price > 0:\n",
-    "        discount_pct = round((discount_amt / normal_price) * 100, 2) if normal_price else 0\n",
-    "\n",
-    "    timestamp = datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")\n",
-    "    total_normal = round(normal_price * qty, 2)\n",
-    "    total_purchase = round(purchase_price * qty, 2)\n",
-    "    total_discount = round(discount_amt * qty, 2)\n",
-    "\n",
-    "    new_row = {\n",
-    "        \"DateTime\": timestamp,\n",
-    "        \"Shop\": shop,\n",
-    "        \"Item\": item,\n",
-    "        \"Qty\": qty,\n",
-    "        \"NormalPrice\": normal_price,\n",
-    "        \"PurchasePrice\": purchase_price,\n",
-    "        \"DiscountAmt\": discount_amt,\n",
-    "        \"DiscountPct\": discount_pct,\n",
-    "        \"TotalNormal\": total_normal,\n",
-    "        \"TotalPurchase\": total_purchase,\n",
-    "        \"TotalDiscount\": total_discount,\n",
-    "    }\n",
-    "\n",
-    "    df_log = pd.concat([df_log, pd.DataFrame([new_row])], ignore_index=True)\n",
-    "    df_log.to_csv(LOG_FILE, index=False)\n",
-    "    st.success(\"✅ Entry logged successfully!\")\n",
-    "\n",
-    "if st.button(\"🧹 Clear Last Entry\"):\n",
-    "    if len(df_log) > 0:\n",
-    "        df_log = df_log.iloc[:-1]\n",
-    "        df_log.to_csv(LOG_FILE, index=False)\n",
-    "        st.success(\"🗑️ Last entry removed.\")\n",
-    "    else:\n",
-    "        st.warning(\"⚠️ No entries to remove.\")\n",
-    "\n",
-    "st.markdown(\"---\")\n",
-    "st.subheader(\"📘 Log History\")\n",
-    "st.dataframe(df_log.sort_values(\"DateTime\", ascending=False), use_container_width=True)\n",
-    "\n",
-    "# Pivot table summary\n",
-    "st.markdown(\"---\")\n",
-    "st.subheader(\"📊 Totals Summary\")\n",
-    "\n",
-    "if not df_log.empty:\n",
-    "    df_log[\"Date\"] = pd.to_datetime(df_log[\"DateTime\"]).dt.date\n",
-    "    pivot = pd.pivot_table(\n",
-    "        df_log,\n",
-    "        index=\"Date\",\n",
-    "        columns=\"Shop\",\n",
-    "        values=[\"TotalNormal\", \"TotalPurchase\", \"TotalDiscount\"],\n",
-    "        aggfunc=\"sum\",\n",
-    "        fill_value=0\n",
-    "    )\n",
-    "    st.dataframe(pivot, use_container_width=True)\n",
-    "else:\n",
-    "    st.info(\"No data yet.\")\n"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": None,
-   "id": "141878e4",
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.10.9"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+
+    df_log = pd.concat([df_log, pd.DataFrame([new_row])], ignore_index=True)
+    df_log.to_csv(LOG_FILE, index=False)
+    st.success("✅ Entry logged successfully!")
+
+if st.button("🧹 Clear Last Entry"):
+    if len(df_log) > 0:
+        df_log = df_log.iloc[:-1]
+        df_log.to_csv(LOG_FILE, index=False)
+        st.success("🗑️ Last entry removed.")
+    else:
+        st.warning("⚠️ No entries to remove.")
+
+st.markdown("---")
+st.subheader("📘 Log History")
+st.dataframe(df_log.sort_values("DateTime", ascending=False), use_container_width=True)
+
+# Pivot table summary
+st.markdown("---")
+st.subheader("📊 Totals Summary")
+
+if not df_log.empty:
+    df_log["Date"] = pd.to_datetime(df_log["DateTime"]).dt.date
+    pivot = pd.pivot_table(
+        df_log,
+        index="Date",
+        columns="Shop",
+        values=["TotalNormal", "TotalPurchase", "TotalDiscount"],
+        aggfunc="sum",
+        fill_value=0
+    )
+    st.dataframe(pivot, use_container_width=True)
+else:
+    st.info("No data yet.")
