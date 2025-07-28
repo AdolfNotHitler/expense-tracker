@@ -9,16 +9,20 @@ LOG_FILE = "log.csv"
 def init_log():
     if not os.path.exists(LOG_FILE):
         df = pd.DataFrame(columns=[
-            "DateTime", "Shop", "Item", "Qty", "NormalPrice", "PurchasePrice",
-            "DiscountAmt", "DiscountPct", "TotalNormal", "TotalPurchase", "TotalDiscount"
+            "DateTime", "Shop", "Item", "Qty",
+            "NormalPrice", "PurchasePrice",
+            "DiscountAmt", "DiscountPct",
+            "TotalNormal", "TotalPurchase", "TotalDiscount"
         ])
         df.to_csv(LOG_FILE, index=False)
 
 # Load log file
 def load_log():
     return pd.read_csv(LOG_FILE) if os.path.exists(LOG_FILE) else pd.DataFrame(columns=[
-        "DateTime", "Shop", "Item", "Qty", "NormalPrice", "PurchasePrice",
-        "DiscountAmt", "DiscountPct", "TotalNormal", "TotalPurchase", "TotalDiscount"
+        "DateTime", "Shop", "Item", "Qty",
+        "NormalPrice", "PurchasePrice",
+        "DiscountAmt", "DiscountPct",
+        "TotalNormal", "TotalPurchase", "TotalDiscount"
     ])
 
 # Save log file
@@ -39,6 +43,7 @@ def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
     disc_pct = float(disc_pct) if disc_pct not in [None, "", 0] else None
     disc_amt = float(disc_amt) if disc_amt not in [None, "", 0] else None
 
+    # --- Fallback logic ---
     if norm is None and purc is not None and disc_pct is not None:
         try:
             norm = purc / (1 - disc_pct / 100)
@@ -67,102 +72,131 @@ def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
 
     return round_or_none(norm), round_or_none(purc), round_or_none(disc_pct), round_or_none(disc_amt)
 
-# Initialize
+# Initialize the log file
 init_log()
-log_df = load_log()
-
-# Setup session state
-for field in ["shop", "new_shop", "item", "new_item", "qty", "normal_price", "purchase_price", "discount_amt", "discount_pct"]:
-    if field not in st.session_state:
-        st.session_state[field] = "" if field.startswith("new") or field in ["shop", "item"] else 0
-
-shops = sorted(log_df["Shop"].dropna().unique().tolist())
-items = sorted(log_df["Item"].dropna().unique().tolist())
 
 st.title("📋 Expenditure Tracker")
 
+# Initialize session state for input fields if not already present
+if "shop" not in st.session_state:
+    st.session_state.shop = ""
+if "item" not in st.session_state:
+    st.session_state.item = ""
+if "qty" not in st.session_state:
+    st.session_state.qty = 1
+if "normal_price" not in st.session_state:
+    st.session_state.normal_price = 0.0
+if "discount_pct" not in st.session_state:
+    st.session_state.discount_pct = 0.0
+if "discount_amt" not in st.session_state:
+    st.session_state.discount_amt = 0.0
+if "purchase_price" not in st.session_state:
+    st.session_state.purchase_price = 0.0
+if "new_shop_name" not in st.session_state:
+    st.session_state.new_shop_name = ""
+if "new_item_name" not in st.session_state:
+    st.session_state.new_item_name = ""
+
+
+# Load data for dropdowns
+log_df = load_log()
+shops = sorted(log_df["Shop"].dropna().unique().tolist())
+items = sorted(log_df["Item"].dropna().unique().tolist())
+
 with st.form("entry_form"):
     st.subheader("New Entry")
-    shop = st.selectbox("Shop Name", options=[""] + shops, index=0, key="shop")
-    if shop == "":
-        new_shop = st.text_input("Enter new shop name", key="new_shop")
-        shop = new_shop
 
-    item = st.selectbox("Item Name", options=[""] + items, index=0, key="item")
-    if item == "":
-        new_item = st.text_input("Enter new item name", key="new_item")
-        item = new_item
+    # Use session state to manage selectbox and text input values
+    shop_selection = st.selectbox("Shop Name", options=[""] + shops, key="shop_select")
+    if shop_selection == "":
+        st.session_state.shop = st.text_input("Enter new shop name", value=st.session_state.new_shop_name, key="new_shop_input")
+    else:
+        st.session_state.shop = shop_selection
+        st.session_state.new_shop_name = "" # Clear the new shop name input if a selection is made
 
-    qty = st.number_input("Quantity", min_value=1, step=1, key="qty")
-    normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01, format="%.2f", key="normal_price")
-    discount_pct = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=0.01, format="%.2f", key="discount_pct")
-    discount_amt = st.number_input("Discount Amount", min_value=0.0, step=0.01, format="%.2f", key="discount_amt")
-    purchase_price = st.number_input("Purchase Price", min_value=0.0, step=0.01, format="%.2f", key="purchase_price")
+    item_selection = st.selectbox("Item Name", options=[""] + items, key="item_select")
+    if item_selection == "":
+        st.session_state.item = st.text_input("Enter new item name", value=st.session_state.new_item_name, key="new_item_input")
+    else:
+        st.session_state.item = item_selection
+        st.session_state.new_item_name = "" # Clear the new item name input if a selection is made
+
+    qty = st.number_input("Quantity", min_value=1, step=1, value=st.session_state.qty, key="qty_input")
+    normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.normal_price, key="normal_price_input")
+    discount_pct = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=0.01, format="%.2f", value=st.session_state.discount_pct, key="discount_pct_input")
+    discount_amt = st.number_input("Discount Amount", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.discount_amt, key="discount_amt_input")
+    purchase_price = st.number_input("Purchase Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.purchase_price, key="purchase_price_input")
 
     submitted = st.form_submit_button("Enter Log Entry")
 
-    if submitted:
-        norm, purc, pct, amt = calculate_missing_fields(
-            norm=normal_price,
-            purc=purchase_price,
-            disc_pct=discount_pct,
-            disc_amt=discount_amt
-        )
+if submitted:
+    # Update session state with submitted values (important for subsequent form renders)
+    st.session_state.qty = qty
+    st.session_state.normal_price = normal_price
+    st.session_state.discount_pct = discount_pct
+    st.session_state.discount_amt = discount_amt
+    st.session_state.purchase_price = purchase_price
 
-        # Inline warnings
-        warnings = []
-        if norm is not None and purc is not None and purc > norm:
-            warnings.append(f"⚠️ Purchase price ({purc}) is higher than normal price ({norm})")
-        if norm is not None and norm <= 0:
-            warnings.append("⚠️ Normal price is zero or negative")
-        if purc is not None and purc <= 0:
-            warnings.append("⚠️ Purchase price is zero or negative")
-        if qty <= 0:
-            warnings.append("⚠️ Quantity must be greater than zero")
 
-        for msg in warnings:
-            st.warning(msg)
+    norm, purc, pct, amt = calculate_missing_fields(
+        norm=normal_price,
+        purc=purchase_price,
+        disc_pct=discount_pct,
+        disc_amt=discount_amt
+    )
 
-        if any("⚠️" in w for w in warnings):
-            st.stop()
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        new_entry = {
-            "DateTime": now,
-            "Shop": shop,
-            "Item": item,
-            "Qty": qty,
-            "NormalPrice": norm,
-            "PurchasePrice": purc,
-            "DiscountAmt": amt,
-            "DiscountPct": pct,
-            "TotalNormal": norm * qty if norm is not None else 0,
-            "TotalPurchase": purc * qty if purc is not None else 0,
-            "TotalDiscount": amt * qty if amt is not None else 0
-        }
+    new_entry = {
+        "DateTime": now,
+        "Shop": st.session_state.shop,
+        "Item": st.session_state.item,
+        "Qty": qty,
+        "NormalPrice": norm,
+        "PurchasePrice": purc,
+        "DiscountAmt": amt,
+        "DiscountPct": pct,
+        "TotalNormal": norm * qty if norm is not None else 0,
+        "TotalPurchase": purc * qty if purc is not None else 0,
+        "TotalDiscount": amt * qty if amt is not None else 0
+    }
 
-        log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
-        save_log(log_df)
-        st.success("✅ Entry logged successfully.")
+    # Append to log
+    log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
+    save_log(log_df)
 
-# Clear Input Button
-def clear_inputs():
-    for field in ["shop", "new_shop", "item", "new_item", "qty", "normal_price", "purchase_price", "discount_amt", "discount_pct"]:
-        st.session_state[field] = "" if field.startswith("new") or field in ["shop", "item"] else 0
+    st.success("✅ Entry logged successfully.")
 
+---
+
+## Clear Input and Clear Last Entry
+
+# Clear Input button
 if st.button("🧹 Clear Input"):
-    clear_inputs()
+    st.session_state.shop = ""
+    st.session_state.item = ""
+    st.session_state.qty = 1
+    st.session_state.normal_price = 0.0
+    st.session_state.discount_pct = 0.0
+    st.session_state.discount_amt = 0.0
+    st.session_state.purchase_price = 0.0
+    st.session_state.new_shop_name = ""
+    st.session_state.new_item_name = ""
     st.experimental_rerun()
 
-# Clear Last Entry Button
+# Clear Last Entry
 if st.button("❌ Clear Last Entry"):
     if not log_df.empty:
         log_df = log_df[:-1]
         save_log(log_df)
         st.success("Last entry removed.")
-        st.experimental_rerun()
+        st.experimental_rerun() # Rerun to update the displayed dataframe
     else:
         st.warning("No entries to delete.")
+
+---
+
+## Log Display and Summary
 
 # Display log
 st.subheader("📒 Log")
@@ -171,15 +205,19 @@ st.dataframe(log_df, use_container_width=True)
 # Pivot summary
 if not log_df.empty:
     st.subheader("📊 Summary (Daily Totals)")
+
     log_df["Date"] = pd.to_datetime(log_df["DateTime"]).dt.date
     pivot = log_df.groupby(["Date", "Shop"]).agg({
         "TotalNormal": "sum",
         "TotalPurchase": "sum",
         "TotalDiscount": "sum"
     }).reset_index()
+
     pivot_table = pivot.pivot_table(
     index=["Date", "Shop"],
     values=["TotalNormal", "TotalPurchase", "TotalDiscount"],
     aggfunc="sum",
-    fill_value=0)
+    fill_value=0
+)
+
     st.dataframe(pivot_table, use_container_width=True)
