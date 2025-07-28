@@ -167,8 +167,6 @@ if submitted:
 
     st.success("✅ Entry logged successfully.")
 
----
-
 ## Clear Input and Clear Last Entry
 
 # Clear Input button
@@ -194,7 +192,6 @@ if st.button("❌ Clear Last Entry"):
     else:
         st.warning("No entries to delete.")
 
----
 
 ## Log Display and Summary
 
