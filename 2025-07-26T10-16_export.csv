@@ -1,0 +1,5 @@
+﻿,DateTime,Shop,Item,Qty,NormalPrice,PurchasePrice,DiscountAmt,DiscountPct,TotalNormal,TotalPurchase,TotalDiscount
+3,2025-07-26 10:14:31,Shoprite,Wine,2,84,60,0,0,168,120,0
+2,2025-07-26 10:13:16,Clicks,Lotion,1,84,55,0,0,84,55,0
+1,2025-07-26 10:03:43,Pick n Pay,eggs,1,89,69,0,0,89,69,0
+0,2025-07-26 10:02:11,Shoprite,Bread,1,15,14,0,0,15,14,0
