@@ -1,0 +1,157 @@
+[1mdiff --git a/2025-07-26T10-16_export.csv b/2025-07-26T10-16_export.csv[m
+[1mnew file mode 100644[m
+[1mindex 0000000..815c350[m
+[1m--- /dev/null[m
+[1m+++ b/2025-07-26T10-16_export.csv[m
+[36m@@ -0,0 +1,5 @@[m
+[32m+[m[32m﻿,DateTime,Shop,Item,Qty,NormalPrice,PurchasePrice,DiscountAmt,DiscountPct,TotalNormal,TotalPurchase,TotalDiscount[m
+[32m+[m[32m3,2025-07-26 10:14:31,Shoprite,Wine,2,84,60,0,0,168,120,0[m
+[32m+[m[32m2,2025-07-26 10:13:16,Clicks,Lotion,1,84,55,0,0,84,55,0[m
+[32m+[m[32m1,2025-07-26 10:03:43,Pick n Pay,eggs,1,89,69,0,0,89,69,0[m
+[32m+[m[32m0,2025-07-26 10:02:11,Shoprite,Bread,1,15,14,0,0,15,14,0[m
+[1mdiff --git a/Expapp20250726v1.py b/Expapp20250726v1.py[m
+[1mnew file mode 100644[m
+[1mindex 0000000..1a0cca4[m
+[1m--- /dev/null[m
+[1m+++ b/Expapp20250726v1.py[m
+[36m@@ -0,0 +1,136 @@[m
+[32m+[m[32mimport streamlit as st[m
+[32m+[m[32mimport pandas as pd[m
+[32m+[m[32mfrom datetime import datetime[m
+[32m+[m[32mimport os[m
+[32m+[m
+[32m+[m[32m# Constants[m
+[32m+[m[32mCSV_FILE = "log.csv"[m
+[32m+[m
+[32m+[m[32m# ---------- Utility Functions ----------[m
+[32m+[m
+[32m+[m[32mdef load_data():[m
+[32m+[m[32m    if os.path.exists(CSV_FILE):[m
+[32m+[m[32m        return pd.read_csv(CSV_FILE)[m
+[32m+[m[32m    else:[m
+[32m+[m[32m        return pd.DataFrame(columns=[[m
+[32m+[m[32m            "DateTime", "Shop", "Item", "Qty", "NormalPrice",[m
+[32m+[m[32m            "PurchasePrice", "DiscountAmt", "DiscountPct",[m
+[32m+[m[32m            "TotalNormal", "TotalPurchase", "TotalDiscount"[m
+[32m+[m[32m        ])[m
+[32m+[m
+[32m+[m[32mdef save_data(df):[m
+[32m+[m[32m    df.to_csv(CSV_FILE, index=False)[m
+[32m+[m
+[32m+[m[32mdef clear_inputs():[m
+[32m+[m[32m    st.session_state['shop'] = ""[m
+[32m+[m[32m    st.session_state['item'] = ""[m
+[32m+[m[32m    st.session_state['qty'] = 1[m
+[32m+[m[32m    st.session_state['normal_price'] = ""[m
+[32m+[m[32m    st.session_state['purchase_price'] = ""[m
+[32m+[m[32m    st.session_state['discount_pct'] = ""[m
+[32m+[m[32m    st.session_state['discount_amt'] = ""[m
+[32m+[m
+[32m+[m[32mdef calculate_missing_fields(norm, purc, disc_pct, disc_amt):[m
+[32m+[m[32m    # Coerce to numeric or None[m
+[32m+[m[32m    norm = float(norm) if norm not in [None, "", 0] else None[m
+[32m+[m[32m    purc = float(purc) if purc not in [None, "", 0] else None[m
+[32m+[m[32m    disc_pct = float(disc_pct) if disc_pct not in [None, "", 0] else None[m
+[32m+[m[32m    disc_amt = float(disc_amt) if disc_amt not in [None, "", 0] else None[m
+[32m+[m
+[32m+[m[32m    # Logic fallback[m
+[32m+[m[32m    if norm is None and purc is not None and disc_pct is not None:[m
+[32m+[m[32m        norm = purc / (1 - disc_pct / 100)[m
+[32m+[m
+[32m+[m[32m    if disc_amt is None:[m
+[32m+[m[32m        if norm is not None and disc_pct is not None:[m
+[32m+[m[32m            disc_amt = norm * (disc_pct / 100)[m
+[32m+[m[32m        elif norm is not None and purc is not None:[m
+[32m+[m[32m            disc_amt = norm - purc[m
+[32m+[m[32m        elif purc is not None and disc_pct is not None:[m
+[32m+[m[32m            disc_amt = purc * (disc_pct / (100 - disc_pct))[m
+[32m+[m
+[32m+[m[32m    if purc is None and norm is not None and disc_amt is not None:[m
+[32m+[m[32m        purc = norm - disc_amt[m
+[32m+[m
+[32m+[m[32m    if disc_pct is None and norm and disc_amt:[m
+[32m+[m[32m        disc_pct = (disc_amt / norm) * 100[m
+[32m+[m
+[32m+[m[32m    return round_or_none(norm), round_or_none(purc), round_or_none(disc_pct), round_or_none(disc_amt)[m
+[32m+[m
+[32m+[m[32mdef round_or_none(x):[m
+[32m+[m[32m    return round(x, 2) if x is not None else ""[m
+[32m+[m
+[32m+[m[32m# ---------- Streamlit App UI ----------[m
+[32m+[m
+[32m+[m[32mst.title("🧾 Expenditure Tracker")[m
+[32m+[m
+[32m+[m[32m# Load data[m
+[32m+[m[32mdf = load_data()[m
+[32m+[m
+[32m+[m[32m# --- Input Fields ---[m
+[32m+[m[32mshop = st.text_input("Shop Name", key="shop")[m
+[32m+[m[32mitem = st.text_input("Item Name", key="item")[m
+[32m+[m[32mqty = st.number_input("Quantity", min_value=1, value=1, step=1, key="qty")[m
+[32m+[m[32mnormal_price = st.text_input("Normal Price", key="normal_price")[m
+[32m+[m[32mdiscount_pct = st.text_input("% Discount", key="discount_pct")[m
+[32m+[m[32mdiscount_amt = st.text_input("Discount Amount", key="discount_amt")[m
+[32m+[m[32mpurchase_price = st.text_input("Purchase Price", key="purchase_price")[m
+[32m+[m
+[32m+[m[32m# --- Action Buttons ---[m
+[32m+[m[32mcol1, col2 = st.columns(2)[m
+[32m+[m
+[32m+[m[32mwith col1:[m
+[32m+[m[32m    if st.button("➕ Enter Log Entry"):[m
+[32m+[m[32m        # Apply logic fallback[m
+[32m+[m[32m        norm, purc, pct, amt = calculate_missing_fields(normal_price, purchase_price, discount_pct, discount_amt)[m
+[32m+[m
+[32m+[m[32m        # Update input display if user left it blank[m
+[32m+[m[32m        st.session_state['normal_price'] = norm[m
+[32m+[m[32m        st.session_state['purchase_price'] = purc[m
+[32m+[m[32m        st.session_state['discount_pct'] = pct[m
+[32m+[m[32m        st.session_state['discount_amt'] = amt[m
+[32m+[m
+[32m+[m[32m        # Totals[m
+[32m+[m[32m        total_norm = norm * qty if norm else 0[m
+[32m+[m[32m        total_purc = purc * qty if purc else 0[m
+[32m+[m[32m        total_disc = amt * qty if amt else 0[m
+[32m+[m
+[32m+[m[32m        # Log the data[m
+[32m+[m[32m        df = df.append({[m
+[32m+[m[32m            "DateTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),[m
+[32m+[m[32m            "Shop": shop,[m
+[32m+[m[32m            "Item": item,[m
+[32m+[m[32m            "Qty": qty,[m
+[32m+[m[32m            "NormalPrice": norm,[m
+[32m+[m[32m            "PurchasePrice": purc,[m
+[32m+[m[32m            "DiscountAmt": amt,[m
+[32m+[m[32m            "DiscountPct": pct,[m
+[32m+[m[32m            "TotalNormal": total_norm,[m
+[32m+[m[32m            "TotalPurchase": total_purc,[m
+[32m+[m[32m            "TotalDiscount": total_disc[m
+[32m+[m[32m        }, ignore_index=True)[m
+[32m+[m
+[32m+[m[32m        save_data(df)[m
+[32m+[m[32m        st.success("Entry logged successfully!")[m
+[32m+[m
+[32m+[m[32mwith col2:[m
+[32m+[m[32m    if st.button("🧹 Clear Input Fields"):[m
+[32m+[m[32m        clear_inputs()[m
+[32m+[m
+[32m+[m[32m# --- Display Log Table ---[m
+[32m+[m[32mst.subheader("📄 Logged Entries")[m
+[32m+[m[32mst.dataframe(df)[m
+[32m+[m
+[32m+[m[32m# --- Pivot Summary ---[m
+[32m+[m[32mst.subheader("📊 Summary Pivot (Daily Totals by Shop)")[m
+[32m+[m
+[32m+[m[32mif not df.empty:[m
+[32m+[m[32m    df["Date"] = pd.to_datetime(df["DateTime"]).dt.date[m
+[32m+[m[32m    pivot = df.pivot_table([m
+[32m+[m[32m        index="Date",[m
+[32m+[m[32m        columns="Shop",[m
+[32m+[m[32m        values=["TotalNormal", "TotalPurchase", "TotalDiscount"],[m
+[32m+[m[32m        aggfunc="sum",[m
+[32m+[m[32m        fill_value=0[m
+[32m+[m[32m    )[m
+[32m+[m[32m    st.dataframe(pivot)[m
+[1mdiff --git a/requirements.txt b/requirements.txt[m
+[1mnew file mode 100644[m
+[1mindex 0000000..4bc407e[m
+Binary files /dev/null and b/requirements.txt differ
