@@ -1,45 +1,54 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 import os
+from datetime import datetime
 
-# Constants
-CSV_FILE = "log.csv"
+LOG_FILE = "log.csv"
 
-# ---------- Utility Functions ----------
-
-def load_data():
-    if os.path.exists(CSV_FILE):
-        return pd.read_csv(CSV_FILE)
-    else:
-        return pd.DataFrame(columns=[
-            "DateTime", "Shop", "Item", "Qty", "NormalPrice",
-            "PurchasePrice", "DiscountAmt", "DiscountPct",
+# Initialize log if not exists
+def init_log():
+    if not os.path.exists(LOG_FILE):
+        df = pd.DataFrame(columns=[
+            "DateTime", "Shop", "Item", "Qty",
+            "NormalPrice", "PurchasePrice",
+            "DiscountAmt", "DiscountPct",
             "TotalNormal", "TotalPurchase", "TotalDiscount"
         ])
+        df.to_csv(LOG_FILE, index=False)
 
-def save_data(df):
-    df.to_csv(CSV_FILE, index=False)
+# Load log file
+def load_log():
+    return pd.read_csv(LOG_FILE) if os.path.exists(LOG_FILE) else pd.DataFrame(columns=[
+        "DateTime", "Shop", "Item", "Qty",
+        "NormalPrice", "PurchasePrice",
+        "DiscountAmt", "DiscountPct",
+        "TotalNormal", "TotalPurchase", "TotalDiscount"
+    ])
 
-def clear_inputs():
-    st.session_state['shop'] = ""
-    st.session_state['item'] = ""
-    st.session_state['qty'] = 1
-    st.session_state['normal_price'] = ""
-    st.session_state['purchase_price'] = ""
-    st.session_state['discount_pct'] = ""
-    st.session_state['discount_amt'] = ""
+# Save log file
+def save_log(df):
+    df.to_csv(LOG_FILE, index=False)
 
+# Round helper
+def round_or_none(val):
+    try:
+        return round(val, 2)
+    except:
+        return None
+
+# Calculate missing fields
 def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
-    # Coerce to numeric or None
     norm = float(norm) if norm not in [None, "", 0] else None
     purc = float(purc) if purc not in [None, "", 0] else None
     disc_pct = float(disc_pct) if disc_pct not in [None, "", 0] else None
     disc_amt = float(disc_amt) if disc_amt not in [None, "", 0] else None
 
-    # Logic fallback
+    # --- Fallback logic ---
     if norm is None and purc is not None and disc_pct is not None:
-        norm = purc / (1 - disc_pct / 100)
+        try:
+            norm = purc / (1 - disc_pct / 100)
+        except ZeroDivisionError:
+            norm = purc
 
     if disc_amt is None:
         if norm is not None and disc_pct is not None:
@@ -47,104 +56,111 @@ def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
         elif norm is not None and purc is not None:
             disc_amt = norm - purc
         elif purc is not None and disc_pct is not None:
-            disc_amt = purc * (disc_pct / (100 - disc_pct))
+            try:
+                disc_amt = purc * (disc_pct / (100 - disc_pct))
+            except ZeroDivisionError:
+                disc_amt = 0
 
     if purc is None and norm is not None and disc_amt is not None:
         purc = norm - disc_amt
 
     if disc_pct is None and norm and disc_amt:
-        disc_pct = (disc_amt / norm) * 100
+        try:
+            disc_pct = (disc_amt / norm) * 100
+        except ZeroDivisionError:
+            disc_pct = 0
 
     return round_or_none(norm), round_or_none(purc), round_or_none(disc_pct), round_or_none(disc_amt)
 
-def round_or_none(x):
-    return round(x, 2) if x is not None else ""
+# Initialize the log file
+init_log()
 
-def clear_last_entry():
-    df = load_data()
-    if not df.empty:
-        df = df.iloc[:-1]  # Remove last row
-        save_data(df)
-        st.success("✅ Last log entry removed.")
-    else:
-        st.warning("⚠️ No entries to delete.")
+st.title("📋 Expenditure Tracker")
 
-# ---------- Streamlit App UI ----------
+# Load data for dropdowns
+log_df = load_log()
+shops = sorted(log_df["Shop"].dropna().unique().tolist())
+items = sorted(log_df["Item"].dropna().unique().tolist())
 
-st.title("🧾 Expenditure Tracker")
+with st.form("entry_form"):
+    st.subheader("New Entry")
 
-# Load data
-df = load_data()
+    shop = st.selectbox("Shop Name", options=[""] + shops)
+    if shop == "":
+        shop = st.text_input("Enter new shop name")
 
-# --- Input Fields ---
-shop = st.text_input("Shop Name", key="shop")
-item = st.text_input("Item Name", key="item")
-qty = st.number_input("Quantity", min_value=1, value=1, step=1, key="qty")
-normal_price = st.text_input("Normal Price", key="normal_price")
-discount_pct = st.text_input("% Discount", key="discount_pct")
-discount_amt = st.text_input("Discount Amount", key="discount_amt")
-purchase_price = st.text_input("Purchase Price", key="purchase_price")
+    item = st.selectbox("Item Name", options=[""] + items)
+    if item == "":
+        item = st.text_input("Enter new item name")
 
-# --- Action Buttons ---
-col1, col2, col3 = st.columns(3)
+    qty = st.number_input("Quantity", min_value=1, step=1)
+    normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01, format="%.2f")
+    discount_pct = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=0.01, format="%.2f")
+    discount_amt = st.number_input("Discount Amount", min_value=0.0, step=0.01, format="%.2f")
+    purchase_price = st.number_input("Purchase Price", min_value=0.0, step=0.01, format="%.2f")
 
-with col1:
-    if st.button("➕ Enter Log Entry"):
-        # Apply logic fallback
-        norm, purc, pct, amt = calculate_missing_fields(normal_price, purchase_price, discount_pct, discount_amt)
+    submitted = st.form_submit_button("Enter Log Entry")
 
-        # Update input display if user left it blank
-        st.session_state['normal_price'] = norm
-        st.session_state['purchase_price'] = purc
-        st.session_state['discount_pct'] = pct
-        st.session_state['discount_amt'] = amt
-
-        # Totals
-        total_norm = norm * qty if norm else 0
-        total_purc = purc * qty if purc else 0
-        total_disc = amt * qty if amt else 0
-
-        # Log the data
-        df = df.append({
-            "DateTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Shop": shop,
-            "Item": item,
-            "Qty": qty,
-            "NormalPrice": norm,
-            "PurchasePrice": purc,
-            "DiscountAmt": amt,
-            "DiscountPct": pct,
-            "TotalNormal": total_norm,
-            "TotalPurchase": total_purc,
-            "TotalDiscount": total_disc
-        }, ignore_index=True)
-
-        save_data(df)
-        st.success("✅ Entry logged successfully.")
-
-with col2:
-    if st.button("🧹 Clear Input Fields"):
-        clear_inputs()
-        st.success("✅ Input fields cleared.")
-
-with col3:
-    if st.button("❌ Clear Last Log Entry"):
-        clear_last_entry()
-
-# --- Display Log Table ---
-st.subheader("📄 Logged Entries")
-st.dataframe(df)
-
-# --- Pivot Summary ---
-st.subheader("📊 Summary Pivot (Daily Totals by Shop)")
-
-if not df.empty:
-    df["Date"] = pd.to_datetime(df["DateTime"]).dt.date
-    pivot = df.pivot_table(
-        index="Date",
-        columns="Shop",
-        values=["TotalNormal", "TotalPurchase", "TotalDiscount"],
-        aggfunc="sum",
-        fill_value=0
+if submitted:
+    norm, purc, pct, amt = calculate_missing_fields(
+        norm=normal_price,
+        purc=purchase_price,
+        disc_pct=discount_pct,
+        disc_amt=discount_amt
     )
-    st.dataframe(pivot)
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    new_entry = {
+        "DateTime": now,
+        "Shop": shop,
+        "Item": item,
+        "Qty": qty,
+        "NormalPrice": norm,
+        "PurchasePrice": purc,
+        "DiscountAmt": amt,
+        "DiscountPct": pct,
+        "TotalNormal": norm * qty if norm is not None else 0,
+        "TotalPurchase": purc * qty if purc is not None else 0,
+        "TotalDiscount": amt * qty if amt is not None else 0
+    }
+
+    # Append to log
+    log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
+    save_log(log_df)
+
+    st.success("✅ Entry logged successfully.")
+
+# Clear Input button
+if st.button("🧹 Clear Input"):
+    st.experimental_rerun()
+
+# Clear Last Entry
+if st.button("❌ Clear Last Entry"):
+    if not log_df.empty:
+        log_df = log_df[:-1]
+        save_log(log_df)
+        st.success("Last entry removed.")
+    else:
+        st.warning("No entries to delete.")
+
+# Display log
+st.subheader("📒 Log")
+st.dataframe(log_df, use_container_width=True)
+
+# Pivot summary
+if not log_df.empty:
+    st.subheader("📊 Summary (Daily Totals)")
+
+    log_df["Date"] = pd.to_datetime(log_df["DateTime"]).dt.date
+    pivot = log_df.groupby(["Date", "Shop"]).agg({
+        "TotalNormal": "sum",
+        "TotalPurchase": "sum",
+        "TotalDiscount": "sum"
+    }).reset_index()
+
+    pivot_table = pivot.pivot_table(index="Date", columns="Shop", 
+                                     values=["TotalNormal", "TotalPurchase", "TotalDiscount"],
+                                     aggfunc="sum", fill_value=0)
+
+    st.dataframe(pivot_table, use_container_width=True)
