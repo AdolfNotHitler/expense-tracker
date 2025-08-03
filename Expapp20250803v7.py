@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-import uuid
 
 LOG_FILE = "log.csv"
 
@@ -110,28 +109,34 @@ items = sorted(log_df["Item"].dropna().unique().tolist())
 with st.form("entry_form", clear_on_submit=False):
     st.subheader("New Entry")
 
-    # Combined Shop dropdown with custom input
-    shop_input = st.selectbox("Shop Name", 
-                             options=["Custom (Enter New)"] + shops,
-                             key="shop_select")
-    if shop_input == "Custom (Enter New)":
-        st.session_state.shop = st.text_input("Enter new shop name", 
+    # Shop dropdown with custom input option
+    shop_options = ["Select or Add New Shop"] + shops
+    shop_selection = st.selectbox("Shop Name", 
+                                 options=shop_options,
+                                 index=shop_options.index(st.session_state.shop) if st.session_state.shop in shop_options else 0,
+                                 key="shop_select")
+    
+    if shop_selection == "Select or Add New Shop":
+        st.session_state.shop = st.text_input("Enter new shop name",
                                             value=st.session_state.new_shop_input,
                                             key="new_shop_input")
     else:
-        st.session_state.shop = shop_input
+        st.session_state.shop = shop_selection
         st.session_state.new_shop_input = ""
 
-    # Combined Item dropdown with custom input
-    item_input = st.selectbox("Item Name",
-                             options=["Custom (Enter New)"] + items,
-                             key="item_select")
-    if item_input == "Custom (Enter New)":
+    # Item dropdown with custom input option
+    item_options = ["Select or Add New Item"] + items
+    item_selection = st.selectbox("Item Name",
+                                 options=item_options,
+                                 index=item_options.index(st.session_state.item) if st.session_state.item in item_options else 0,
+                                 key="item_select")
+    
+    if item_selection == "Select or Add New Item":
         st.session_state.item = st.text_input("Enter new item name",
                                             value=st.session_state.new_item_input,
                                             key="new_item_input")
     else:
-        st.session_state.item = item_input
+        st.session_state.item = item_selection
         st.session_state.new_item_input = ""
 
     qty = st.number_input("Quantity", min_value=1, step=1, value=st.session_state.qty)
@@ -164,14 +169,14 @@ if submitted:
             "TotalDiscount": round_or_none(amt * qty) if amt is not None else 0
         }
 
-        # Update session state with current inputs
+        # Update session state to persist inputs
         st.session_state.qty = qty
         st.session_state.normal_price = normal_price
         st.session_state.discount_pct = discount_pct
         st.session_state.discount_amt = discount_amt
         st.session_state.purchase_price = purchase_price
-        st.session_state.new_shop_input = st.session_state.shop if shop_input == "Custom (Enter New)" else ""
-        st.session_state.new_item_input = st.session_state.item if item_input == "Custom (Enter New)" else ""
+        st.session_state.new_shop_input = st.session_state.shop if shop_selection == "Select or Add New Shop" else ""
+        st.session_state.new_item_input = st.session_state.item if item_selection == "Select or Add New Item" else ""
 
         log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
         save_log(log_df)
