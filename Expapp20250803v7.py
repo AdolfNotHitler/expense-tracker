@@ -87,14 +87,40 @@ def init_session_state():
         "discount_pct": 0.0,
         "discount_amt": 0.0,
         "purchase_price": 0.0,
-        "custom_shop": False,
-        "custom_item": False,
         "shop_input": "",
-        "item_input": ""
+        "item_input": "",
+        "shop_is_manual": False,
+        "item_is_manual": False
     }
     for key, val in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = val
+
+# Callback to handle shop input changes
+def shop_changed():
+    selected = st.session_state.shop_select
+    shops = sorted(load_log()["Shop"].dropna().unique().tolist())
+    if selected and selected not in shops:
+        st.session_state.shop_is_manual = True
+        st.session_state.shop_input = selected
+        st.session_state.shop = selected
+    else:
+        st.session_state.shop_is_manual = False
+        st.session_state.shop = selected if selected else ""
+        st.session_state.shop_input = ""
+
+# Callback to handle item input changes
+def item_changed():
+    selected = st.session_state.item_select
+    items = sorted(load_log()["Item"].dropna().unique().tolist())
+    if selected and selected not in items:
+        st.session_state.item_is_manual = True
+        st.session_state.item_input = selected
+        st.session_state.item = selected
+    else:
+        st.session_state.item_is_manual = False
+        st.session_state.item = selected if selected else ""
+        st.session_state.item_input = ""
 
 # Initialize app
 init_log()
@@ -111,35 +137,39 @@ items = sorted(log_df["Item"].dropna().unique().tolist())
 with st.form("entry_form", clear_on_submit=True):
     st.subheader("New Entry")
 
-    # Shop selection
-    shop_options = ["Select Shop"] + shops + ["Add New Shop"]
-    shop_selection = st.selectbox("Shop Name",
-                                 options=shop_options,
-                                 index=0,
-                                 key="shop_select")
-    
-    if shop_selection == "Add New Shop":
-        st.session_state.custom_shop = True
-        st.session_state.shop = st.text_input("Enter Shop Name", value=st.session_state.shop_input, key="shop_input")
+    # Shop Name field
+    if st.session_state.shop_is_manual:
+        shop_input = st.text_input("Shop Name", value=st.session_state.shop_input, key="shop_input")
+        st.session_state.shop = shop_input
+        if shop_input in shops:
+            st.session_state.shop_is_manual = False
+            st.session_state.shop_select = shop_input
+            st.session_state.shop_input = ""
+            st.rerun()
     else:
-        st.session_state.custom_shop = False
-        st.session_state.shop = "" if shop_selection == "Select Shop" else shop_selection
-        st.session_state.shop_input = ""
+        shop_options = [""] + shops
+        st.selectbox("Shop Name",
+                     options=shop_options,
+                     index=shop_options.index(st.session_state.shop) if st.session_state.shop in shop_options else 0,
+                     key="shop_select",
+                     on_change=shop_changed)
 
-    # Item selection
-    item_options = ["Select Item"] + items + ["Add New Item"]
-    item_selection = st.selectbox("Item Name",
-                                 options=item_options,
-                                 index=0,
-                                 key="item_select")
-    
-    if item_selection == "Add New Item":
-        st.session_state.custom_item = True
-        st.session_state.item = st.text_input("Enter Item Name", value=st.session_state.item_input, key="item_input")
+    # Item Name field
+    if st.session_state.item_is_manual:
+        item_input = st.text_input("Item Name", value=st.session_state.item_input, key="item_input")
+        st.session_state.item = item_input
+        if item_input in items:
+            st.session_state.item_is_manual = False
+            st.session_state.item_select = item_input
+            st.session_state.item_input = ""
+            st.rerun()
     else:
-        st.session_state.custom_item = False
-        st.session_state.item = "" if item_selection == "Select Item" else item_selection
-        st.session_state.item_input = ""
+        item_options = [""] + items
+        st.selectbox("Item Name",
+                     options=item_options,
+                     index=item_options.index(st.session_state.item) if st.session_state.item in item_options else 0,
+                     key="item_select",
+                     on_change=item_changed)
 
     qty = st.number_input("Quantity", min_value=1, step=1, value=st.session_state.qty)
     normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.normal_price)
@@ -154,9 +184,9 @@ if submitted:
     # Validate inputs
     if not st.session_state.shop or not st.session_state.item:
         st.error("Shop and Item names are required.")
-    elif st.session_state.custom_shop and st.session_state.shop in shops:
+    elif st.session_state.shop_is_manual and st.session_state.shop in shops:
         st.error("Shop name already exists. Please select it from the dropdown.")
-    elif st.session_state.custom_item and st.session_state.item in items:
+    elif st.session_state.item_is_manual and st.session_state.item in items:
         st.error("Item name already exists. Please select it from the dropdown.")
     else:
         norm, purc, pct, amt = calculate_missing_fields(
