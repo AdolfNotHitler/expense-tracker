@@ -80,17 +80,13 @@ def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
 # Initialize session state
 def init_session_state():
     defaults = {
-        "shop": "",
-        "item": "",
+        "shop_input": "",
+        "item_input": "",
         "qty": 1,
         "normal_price": 0.0,
         "discount_pct": 0.0,
         "discount_amt": 0.0,
-        "purchase_price": 0.0,
-        "shop_input": "",
-        "item_input": "",
-        "shop_is_manual": False,
-        "item_is_manual": False
+        "purchase_price": 0.0
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -111,45 +107,21 @@ items = sorted(log_df["Item"].dropna().unique().tolist())
 with st.form("entry_form", clear_on_submit=True):
     st.subheader("New Entry")
 
-    # Shop Name field
-    shop_options = [""] + shops
-    if st.session_state.shop_is_manual or (st.session_state.shop_input and st.session_state.shop_input not in shops):
-        shop_input = st.text_input("Shop Name", value=st.session_state.shop_input, key="shop_input")
-        st.session_state.shop = shop_input
-        st.session_state.shop_is_manual = True
-        if shop_input in shops:
-            st.session_state.shop_is_manual = False
-            st.session_state.shop = shop_input
-            st.session_state.shop_input = shop_input
-    else:
-        shop_selection = st.selectbox("Shop Name",
-                                      options=shop_options,
-                                      index=shop_options.index(st.session_state.shop) if st.session_state.shop in shop_options else 0,
-                                      key="shop_select")
-        st.session_state.shop = shop_selection
-        st.session_state.shop_input = shop_selection
-        if shop_selection and shop_selection not in shops:
-            st.session_state.shop_is_manual = True
+    # Shop Name field with dynamic dropdown
+    shop_selection = st.selectbox("Shop Name (type to search or add new)",
+                                  options=[""] + shops,
+                                  index=0,
+                                  key="shop_select")
+    shop_input = st.text_input("Shop Name", value=st.session_state.shop_input, key="shop_input")
+    st.session_state.shop_input = shop_input if shop_input else shop_selection
 
-    # Item Name field
-    item_options = [""] + items
-    if st.session_state.item_is_manual or (st.session_state.item_input and st.session_state.item_input not in items):
-        item_input = st.text_input("Item Name", value=st.session_state.item_input, key="item_input")
-        st.session_state.item = item_input
-        st.session_state.item_is_manual = True
-        if item_input in items:
-            st.session_state.item_is_manual = False
-            st.session_state.item = item_input
-            st.session_state.item_input = item_input
-    else:
-        item_selection = st.selectbox("Item Name",
-                                      options=item_options,
-                                      index=item_options.index(st.session_state.item) if st.session_state.item in item_options else 0,
-                                      key="item_select")
-        st.session_state.item = item_selection
-        st.session_state.item_input = item_selection
-        if item_selection and item_selection not in items:
-            st.session_state.item_is_manual = True
+    # Item Name field with dynamic dropdown
+    item_selection = st.selectbox("Item Name (type to search or add new)",
+                                  options=[""] + items,
+                                  index=0,
+                                  key="item_select")
+    item_input = st.text_input("Item Name", value=st.session_state.item_input, key="item_input")
+    st.session_state.item_input = item_input if item_input else item_selection
 
     qty = st.number_input("Quantity", min_value=1, step=1, value=st.session_state.qty)
     normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.normal_price)
@@ -161,13 +133,12 @@ with st.form("entry_form", clear_on_submit=True):
 
 # Submit Logic
 if submitted:
+    shop_name = st.session_state.shop_input.strip()
+    item_name = st.session_state.item_input.strip()
+
     # Validate inputs
-    if not st.session_state.shop or not st.session_state.item:
+    if not shop_name or not item_name:
         st.error("Shop and Item names are required.")
-    elif st.session_state.shop_is_manual and st.session_state.shop in shops and st.session_state.shop_input != st.session_state.shop:
-        st.error("Shop name already exists. Please select it from the dropdown.")
-    elif st.session_state.item_is_manual and st.session_state.item in items and st.session_state.item_input != st.session_state.item:
-        st.error("Item name already exists. Please select it from the dropdown.")
     else:
         norm, purc, pct, amt = calculate_missing_fields(
             normal_price, purchase_price, discount_pct, discount_amt
@@ -176,8 +147,8 @@ if submitted:
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         new_entry = {
             "DateTime": now,
-            "Shop": st.session_state.shop,
-            "Item": st.session_state.item,
+            "Shop": shop_name,
+            "Item": item_name,
             "Qty": qty,
             "NormalPrice": norm,
             "PurchasePrice": purc,
