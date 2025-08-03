@@ -80,8 +80,8 @@ def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
 # Initialize session state
 def init_session_state():
     defaults = {
-        "shop_input": "",
-        "item_input": "",
+        "shop": "",
+        "item": "",
         "qty": 1,
         "normal_price": 0.0,
         "discount_pct": 0.0,
@@ -107,34 +107,38 @@ items = sorted(log_df["Item"].dropna().unique().tolist())
 with st.form("entry_form", clear_on_submit=True):
     st.subheader("New Entry")
 
-    # Shop Name field with dynamic dropdown
-    shop_selection = st.selectbox("Shop Name (type to search or add new)",
-                                  options=[""] + shops,
-                                  index=0,
-                                  key="shop_select")
-    shop_input = st.text_input("Shop Name", value=st.session_state.shop_input, key="shop_input")
-    st.session_state.shop_input = shop_input if shop_input else shop_selection
+    # Shop Name field with dynamic input
+    shop_options = [""] + shops
+    shop = st.selectbox(
+        "Shop Name (type to search or add new)",
+        options=shop_options,
+        index=shop_options.index(st.session_state.shop) if st.session_state.shop in shop_options else 0,
+        key="shop",
+        allow_input=True  # Allows typing new values
+    )
 
-    # Item Name field with dynamic dropdown
-    item_selection = st.selectbox("Item Name (type to search or add new)",
-                                  options=[""] + items,
-                                  index=0,
-                                  key="item_select")
-    item_input = st.text_input("Item Name", value=st.session_state.item_input, key="item_input")
-    st.session_state.item_input = item_input if item_input else item_selection
+    # Item Name field with dynamic input
+    item_options = [""] + items
+    item = st.selectbox(
+        "Item Name (type to search or add new)",
+        options=item_options,
+        index=item_options.index(st.session_state.item) if st.session_state.item in item_options else 0,
+        key="item",
+        allow_input=True  # Allows typing new values
+    )
 
-    qty = st.number_input("Quantity", min_value=1, step=1, value=st.session_state.qty)
-    normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.normal_price)
-    discount_pct = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=0.01, format="%.2f", value=st.session_state.discount_pct)
-    discount_amt = st.number_input("Discount Amount", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.discount_amt)
-    purchase_price = st.number_input("Purchase Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.purchase_price)
+    qty = st.number_input("Quantity", min_value=1, step=1, value=st.session_state.qty, key="qty")
+    normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.normal_price, key="normal_price")
+    discount_pct = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=0.01, format="%.2f", value=st.session_state.discount_pct, key="discount_pct")
+    discount_amt = st.number_input("Discount Amount", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.discount_amt, key="discount_amt")
+    purchase_price = st.number_input("Purchase Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.purchase_price, key="purchase_price")
 
     submitted = st.form_submit_button("✅ Enter Log Entry")
 
 # Submit Logic
 if submitted:
-    shop_name = st.session_state.shop_input.strip()
-    item_name = st.session_state.item_input.strip()
+    shop_name = shop.strip() if shop else ""
+    item_name = item.strip() if item else ""
 
     # Validate inputs
     if not shop_name or not item_name:
@@ -162,9 +166,15 @@ if submitted:
         log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
         save_log(log_df)
         st.success("✅ Entry logged successfully.")
-        
-        # Reset session state after successful submission
-        init_session_state()
+
+        # Update session state after successful submission
+        st.session_state.shop = shop_name
+        st.session_state.item = item_name
+        st.session_state.qty = qty
+        st.session_state.normal_price = normal_price
+        st.session_state.discount_pct = discount_pct
+        st.session_state.discount_amt = discount_amt
+        st.session_state.purchase_price = purchase_price
         st.rerun()
 
 # Clear Buttons
