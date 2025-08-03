@@ -88,7 +88,9 @@ def init_session_state():
         "discount_amt": 0.0,
         "purchase_price": 0.0,
         "custom_shop": False,
-        "custom_item": False
+        "custom_item": False,
+        "shop_input": "",
+        "item_input": ""
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -118,10 +120,11 @@ with st.form("entry_form", clear_on_submit=True):
     
     if shop_selection == "Add New Shop":
         st.session_state.custom_shop = True
-        st.session_state.shop = st.text_input("Enter Shop Name", key="shop_input")
+        st.session_state.shop = st.text_input("Enter Shop Name", value=st.session_state.shop_input, key="shop_input")
     else:
         st.session_state.custom_shop = False
         st.session_state.shop = "" if shop_selection == "Select Shop" else shop_selection
+        st.session_state.shop_input = ""
 
     # Item selection
     item_options = ["Select Item"] + items + ["Add New Item"]
@@ -132,10 +135,11 @@ with st.form("entry_form", clear_on_submit=True):
     
     if item_selection == "Add New Item":
         st.session_state.custom_item = True
-        st.session_state.item = st.text_input("Enter Item Name", key="item_input")
+        st.session_state.item = st.text_input("Enter Item Name", value=st.session_state.item_input, key="item_input")
     else:
         st.session_state.custom_item = False
         st.session_state.item = "" if item_selection == "Select Item" else item_selection
+        st.session_state.item_input = ""
 
     qty = st.number_input("Quantity", min_value=1, step=1, value=st.session_state.qty)
     normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.normal_price)
@@ -147,11 +151,18 @@ with st.form("entry_form", clear_on_submit=True):
 
 # Submit Logic
 if submitted:
-    norm, purc, pct, amt = calculate_missing_fields(
-        normal_price, purchase_price, discount_pct, discount_amt
-    )
+    # Validate inputs
+    if not st.session_state.shop or not st.session_state.item:
+        st.error("Shop and Item names are required.")
+    elif st.session_state.custom_shop and st.session_state.shop in shops:
+        st.error("Shop name already exists. Please select it from the dropdown.")
+    elif st.session_state.custom_item and st.session_state.item in items:
+        st.error("Item name already exists. Please select it from the dropdown.")
+    else:
+        norm, purc, pct, amt = calculate_missing_fields(
+            normal_price, purchase_price, discount_pct, discount_amt
+        )
 
-    if st.session_state.shop and st.session_state.item:
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         new_entry = {
             "DateTime": now,
@@ -174,8 +185,6 @@ if submitted:
         # Reset session state after successful submission
         init_session_state()
         st.rerun()
-    else:
-        st.error("Shop and Item names are required.")
 
 # Clear Buttons
 col1, col2 = st.columns(2)
