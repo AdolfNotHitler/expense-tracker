@@ -107,25 +107,25 @@ items = sorted(log_df["Item"].dropna().unique().tolist())
 with st.form("entry_form", clear_on_submit=True):
     st.subheader("New Entry")
 
-    # Shop Name field with dynamic input
+    # Shop Name field with suggestion dropdown
     shop_options = [""] + shops
-    shop = st.selectbox(
-        "Shop Name (type to search or add new)",
+    shop_suggestion = st.selectbox(
+        "Shop Name (select or type new)",
         options=shop_options,
         index=shop_options.index(st.session_state.shop) if st.session_state.shop in shop_options else 0,
-        key="shop",
-        allow_input=True  # Allows typing new values
+        key="shop_suggestion"
     )
+    shop = st.text_input("Shop Name", value=shop_suggestion if shop_suggestion else st.session_state.shop, key="shop")
 
-    # Item Name field with dynamic input
+    # Item Name field with suggestion dropdown
     item_options = [""] + items
-    item = st.selectbox(
-        "Item Name (type to search or add new)",
+    item_suggestion = st.selectbox(
+        "Item Name (select or type new)",
         options=item_options,
         index=item_options.index(st.session_state.item) if st.session_state.item in item_options else 0,
-        key="item",
-        allow_input=True  # Allows typing new values
+        key="item_suggestion"
     )
+    item = st.text_input("Item Name", value=item_suggestion if item_suggestion else st.session_state.item, key="item")
 
     qty = st.number_input("Quantity", min_value=1, step=1, value=st.session_state.qty, key="qty")
     normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01, format="%.2f", value=st.session_state.normal_price, key="normal_price")
