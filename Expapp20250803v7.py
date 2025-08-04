@@ -175,14 +175,14 @@ if submitted:
         save_log(log_df)
         st.success("✅ Entry logged successfully.")
 
-        # Update session state after successful submission
-        st.session_state.shop_input = shop_name
-        st.session_state.item_input = item_name
-        st.session_state.qty = qty
-        st.session_state.normal_price = normal_price
-        st.session_state.discount_pct = discount_pct
-        st.session_state.discount_amt = discount_amt
-        st.session_state.purchase_price = purchase_price
+        # Update session state within submit block
+        st.session_state.shop_input = ""
+        st.session_state.item_input = ""
+        st.session_state.qty = 1
+        st.session_state.normal_price = 0.0
+        st.session_state.discount_pct = 0.0
+        st.session_state.discount_amt = 0.0
+        st.session_state.purchase_price = 0.0
         st.rerun()
 
 # Clear Buttons
