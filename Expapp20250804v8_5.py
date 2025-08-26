@@ -40,34 +40,43 @@ def to_float(val):
 def round_or_none(val):
     return round(val, 2) if val is not None else None
 
-# Fallback field calculations
+# Calculation logic
 def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
-    # Convert 0 or empty to None
     norm = to_float(norm)
     purc = to_float(purc)
     disc_pct = to_float(disc_pct)
     disc_amt = to_float(disc_amt)
 
-    # Fallback logic
-    if purc is None and norm is not None and disc_amt is not None:
-        purc = norm - disc_amt
-    if purc is None and norm is not None and disc_pct is not None:
-        purc = norm * (1 - disc_pct / 100)
-    if norm is None and purc is not None and disc_amt is not None:
-        norm = purc + disc_amt
-    if norm is None and purc is not None and disc_pct is not None and disc_pct < 100:
-        norm = purc / (1 - disc_pct / 100)
+    # --- Calculate based on discount relationships first ---
+    if norm is not None and purc is None:
+        # If only Normal Price given and discount info available
+        if disc_amt is not None:
+            purc = norm - disc_amt
+        elif disc_pct is not None:
+            purc = norm * (1 - disc_pct / 100)
+    elif purc is not None and norm is None:
+        # If only Purchase Price given and discount info available
+        if disc_amt is not None:
+            norm = purc + disc_amt
+        elif disc_pct is not None:
+            norm = purc / (1 - disc_pct / 100) if disc_pct < 100 else None
 
-    # Calculate discount amount if missing
+    # --- If still missing, mirror values ---
+    if norm is None and purc is not None:
+        norm = purc
+    if purc is None and norm is not None:
+        purc = norm
+
+    # --- Calculate discount amount ---
     if disc_amt is None:
         if norm is not None and purc is not None:
             disc_amt = norm - purc
         elif norm is not None and disc_pct is not None:
             disc_amt = norm * (disc_pct / 100)
 
-    # Calculate discount % if missing
-    if disc_pct is None and norm is not None and disc_amt is not None and norm > 0:
-        disc_pct = (disc_amt / norm) * 100
+    # --- Calculate discount percentage ---
+    if disc_pct is None and norm is not None and disc_amt is not None:
+        disc_pct = (disc_amt / norm) * 100 if norm > 0 else 0
 
     return round_or_none(norm), round_or_none(purc), round_or_none(disc_pct), round_or_none(disc_amt)
 
@@ -75,7 +84,7 @@ def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
 def get_index_label(row):
     return f"{row['DateTime']} - {row['Shop']} - {row['Item']} (x{row['Qty']})"
 
-# App Start
+# Initialize log
 init_log()
 log_df = load_log()
 shops = sorted(log_df["Shop"].dropna().unique().tolist())
@@ -98,40 +107,53 @@ if not log_df.empty:
             shop_name = st.text_input("Shop", selected_row["Shop"])
             item_name = st.text_input("Item", selected_row["Item"])
             qty = st.number_input("Quantity", min_value=1, step=1, value=int(selected_row["Qty"]))
-            norm = st.number_input("Normal Price", min_value=0.0, step=0.01, value=float(selected_row["NormalPrice"] or 0))
-            purc = st.number_input("Purchase Price", min_value=0.0, step=0.01, value=float(selected_row["PurchasePrice"] or 0))
-            disc_amt = st.number_input("Discount Amount", min_value=0.0, step=0.01, value=float(selected_row["DiscountAmt"] or 0))
-            disc_pct = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=0.01, value=float(selected_row["DiscountPct"] or 0))
+            norm = st.number_input("Normal Price", min_value=0.0, step=0.01, value=float(selected_row["NormalPrice"]))
+            purc = st.number_input("Purchase Price", min_value=0.0, step=0.01, value=float(selected_row["PurchasePrice"]))
+            disc_amt = st.number_input("Discount Amount", min_value=0.0, step=0.01, value=float(selected_row["DiscountAmt"]))
+            disc_pct = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=0.01, value=float(selected_row["DiscountPct"]))
 
             update_btn = st.form_submit_button("💾 Save Changes")
             if update_btn:
                 norm, purc, disc_pct, disc_amt = calculate_missing_fields(norm, purc, disc_pct, disc_amt)
-
-                # Validation: At least one price required
-                if norm is None and purc is None:
-                    st.error("You must enter at least Normal Price or Purchase Price.")
-                else:
-                    log_df.loc[idx] = {
-                        "DateTime": selected_row["DateTime"],
-                        "Shop": shop_name,
-                        "Item": item_name,
-                        "Qty": qty,
-                        "NormalPrice": norm,
-                        "PurchasePrice": purc,
-                        "DiscountAmt": disc_amt,
-                        "DiscountPct": disc_pct,
-                        "TotalNormal": round_or_none((norm or 0) * qty),
-                        "TotalPurchase": round_or_none((purc or 0) * qty),
-                        "TotalDiscount": round_or_none((disc_amt or 0) * qty)
-                    }
-                    save_log(log_df.drop(columns=["label"], errors="ignore"))
-                    st.success("✅ Entry updated.")
-                    st.rerun()
+                log_df.loc[idx] = {
+                    "DateTime": selected_row["DateTime"],
+                    "Shop": shop_name,
+                    "Item": item_name,
+                    "Qty": qty,
+                    "NormalPrice": norm,
+                    "PurchasePrice": purc,
+                    "DiscountAmt": disc_amt,
+                    "DiscountPct": disc_pct,
+                    "TotalNormal": round_or_none(norm * qty),
+                    "TotalPurchase": round_or_none(purc * qty),
+                    "TotalDiscount": round_or_none(disc_amt * qty)
+                }
+                save_log(log_df.drop(columns=["label"], errors="ignore"))
+                st.success("✅ Entry updated.")
+                st.rerun()
 else:
     st.info("Log is empty. No entries to edit.")
 
-# --- New Entry Section ---
+# --- New Entry Section with real-time auto-fill ---
 st.subheader("🆕 New Entry")
+
+# Initialize session state for dynamic values
+for key in ["normal_price", "purchase_price", "discount_amt", "discount_pct"]:
+    if key not in st.session_state:
+        st.session_state[key] = 0.0
+
+def update_calculations():
+    norm, purc, pct, amt = calculate_missing_fields(
+        st.session_state["normal_price"],
+        st.session_state["purchase_price"],
+        st.session_state["discount_pct"],
+        st.session_state["discount_amt"]
+    )
+    st.session_state["normal_price"] = norm if norm else 0.0
+    st.session_state["purchase_price"] = purc if purc else 0.0
+    st.session_state["discount_pct"] = pct if pct else 0.0
+    st.session_state["discount_amt"] = amt if amt else 0.0
+
 with st.form("new_entry_form"):
     col1, col2 = st.columns(2)
 
@@ -146,10 +168,20 @@ with st.form("new_entry_form"):
         item = st.text_input("Item Name (new or existing)", value=item_select or "")
 
     qty = st.number_input("Quantity", min_value=1, step=1, value=1)
-    normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01)
-    purchase_price = st.number_input("Purchase Price", min_value=0.0, step=0.01)
-    discount_amt = st.number_input("Discount Amount", min_value=0.0, step=0.01)
-    discount_pct = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=0.01)
+
+    # Real-time auto-calculated fields
+    normal_price = st.number_input("Normal Price", min_value=0.0, step=0.01,
+                                    value=st.session_state["normal_price"], key="normal_price",
+                                    on_change=update_calculations)
+    purchase_price = st.number_input("Purchase Price", min_value=0.0, step=0.01,
+                                      value=st.session_state["purchase_price"], key="purchase_price",
+                                      on_change=update_calculations)
+    discount_amt = st.number_input("Discount Amount", min_value=0.0, step=0.01,
+                                    value=st.session_state["discount_amt"], key="discount_amt",
+                                    on_change=update_calculations)
+    discount_pct = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=0.01,
+                                    value=st.session_state["discount_pct"], key="discount_pct",
+                                    on_change=update_calculations)
 
     submit = st.form_submit_button("✅ Enter Log Entry")
 
@@ -157,30 +189,31 @@ with st.form("new_entry_form"):
         if not shop.strip() or not item.strip():
             st.error("Shop and Item name must not be blank.")
         else:
-            norm, purc, pct, amt = calculate_missing_fields(normal_price, purchase_price, discount_pct, discount_amt)
+            norm = st.session_state["normal_price"]
+            purc = st.session_state["purchase_price"]
+            amt = st.session_state["discount_amt"]
+            pct = st.session_state["discount_pct"]
 
-            # Validation: At least one price required
-            if norm is None and purc is None:
-                st.error("You must enter at least Normal Price or Purchase Price.")
-            else:
-                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                new_entry = {
-                    "DateTime": now,
-                    "Shop": shop.strip(),
-                    "Item": item.strip(),
-                    "Qty": qty,
-                    "NormalPrice": norm,
-                    "PurchasePrice": purc,
-                    "DiscountAmt": amt,
-                    "DiscountPct": pct,
-                    "TotalNormal": round_or_none((norm or 0) * qty),
-                    "TotalPurchase": round_or_none((purc or 0) * qty),
-                    "TotalDiscount": round_or_none((amt or 0) * qty)
-                }
-                log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
-                save_log(log_df.drop(columns=["label"], errors="ignore"))
-                st.success("✅ Entry logged.")
-                st.rerun()
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            new_entry = {
+                "DateTime": now,
+                "Shop": shop.strip(),
+                "Item": item.strip(),
+                "Qty": qty,
+                "NormalPrice": norm,
+                "PurchasePrice": purc,
+                "DiscountAmt": amt,
+                "DiscountPct": pct,
+                "TotalNormal": round_or_none(norm * qty),
+                "TotalPurchase": round_or_none(purc * qty),
+                "TotalDiscount": round_or_none(amt * qty)
+            }
+
+            log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
+            save_log(log_df.drop(columns=["label"], errors="ignore"))
+            st.success("✅ Entry logged.")
+            st.rerun()
 
 # --- Clear Last Entry ---
 st.subheader("🗑️ Log Actions")
