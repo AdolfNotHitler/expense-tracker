@@ -30,10 +30,13 @@ def save_log(df):
     df.to_csv(LOG_FILE, index=False)
 
 # Utility conversions
-def to_float(val):
+def to_float(val, allow_zero=False):
     try:
         val = float(val)
-        return val if val > 0 else None
+        if allow_zero:
+            return val if val >= 0 else None
+        else:
+            return val if val > 0 else None
     except:
         return None
 
@@ -44,8 +47,14 @@ def round_or_none(val):
 def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
     norm = to_float(norm)
     purc = to_float(purc)
-    disc_pct = to_float(disc_pct)
-    disc_amt = to_float(disc_amt)
+    disc_pct = to_float(disc_pct, allow_zero=True)
+    disc_amt = to_float(disc_amt, allow_zero=True)
+
+    # Treat 0 discounts as None (meaning not provided, so calculate if needed)
+    if disc_pct == 0:
+        disc_pct = None
+    if disc_amt == 0:
+        disc_amt = None
 
     if purc is None and norm is not None and disc_amt is not None:
         purc = norm - disc_amt
@@ -56,11 +65,11 @@ def calculate_missing_fields(norm, purc, disc_pct, disc_amt):
     if norm is None and purc is not None and disc_pct is not None:
         norm = purc / (1 - disc_pct / 100) if disc_pct < 100 else None
 
-    # Added for cases where only one price is provided without discounts
-    if purc is None and norm is not None and disc_amt is None and disc_pct is None:
-        purc = norm
+    # Handle cases where only one price is provided without discounts
     if norm is None and purc is not None and disc_amt is None and disc_pct is None:
         norm = purc
+    elif purc is None and norm is not None and disc_amt is None and disc_pct is None:
+        purc = norm
 
     if disc_amt is None:
         if norm is not None and purc is not None:
